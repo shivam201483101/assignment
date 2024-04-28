@@ -1,0 +1,29 @@
+import pandas as pd
+
+df=pd.read_csv("data.csv")
+
+print(original ds)
+print(df)
+
+
+#standardizing format
+df['Customer ID'].fillna(-1,inplace=True)
+df.drop_duplicates(inplace=True)
+df['InvoiceDate']=pd.to_datetime(df['InvoiceDate'],format='%m/%d/%Y %H:%M')
+
+#correcting error
+df.loc[df['Description']=='RED WOOLLY HOTTIE WHITE HEART.','Description']='RED WOOLLY HOTTIE WITH  WHITE-HEART.'
+
+#outlier handling
+median_unit_price=df['UnitPrice'].median()
+df.loc[df['UnitPrice']>10,'UnitPrice']=median_unit_price
+
+#data validation
+df=df[df['Quantity']>0]
+
+#data transformation
+df['TotalPrice']=df['Quantity']*df['UnitPrice']
+
+#Display
+print("\nCleaned Dataset:")
+print(df)
