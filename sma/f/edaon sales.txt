@@ -1,0 +1,193 @@
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import r2_score
+
+df=pd.read_csv('/kaggle/input/sample-sales-data/sales_data_sample.csv',index_col='ORDERNUMBER',encoding='Latin-1')
+df.head()
+
+sales.columns= sales.columns.str. lower ()
+sales.columns.values
+sales.describe()
+# Checking null values
+sales.isnull().sum()
+
+# Checking duplicate values
+len(sales) == len(sales.drop_duplicates())
+
+# Determining Countries with null valued Territory
+sales. loc[sales[ 'territory'].isnull()]['country'].unique()
+array(['USA", 'Canada"], dtype=object)
+# Assigning North America Territory values
+sales[ 'territory'] = sales[' territory' ]. fillna("NAM*)
+sales[ 'territory' ].unique()
+
+# Removing the In Process and Cancelled orders
+sales[' status'].unique()
+
+sales1 = sales[~((sales[ 'status'] == 'Cancelled') | (sales['status'] == 'On Hold' )) ]
+sales1 ['status'].unique()
+
+sales.hist(figsize=(10,10))
+
+plt.show()
+
+plt.figure(figsize=(15,12))
+yearly_revenue = sales1.groupby([ 'year_id' ])['sales']. sum() .reset_index()
+sns.barplot(x="year_id*, y="sales", data=year ly_revenue)
+plt.title('Annual Revenue', fontsize = 20)
+plt.xlabel( 'Year', fontsize = 16)
+plt.ylabel('Revenue', fontsize = 16)
+plt.show()
+
+
+plt.figure(figsize=(30,10))
+
+sns.countplot(x=sales1['country'], order=sales1['country'].value_counts().index)
+plt.title('Number of sale lines for countries', fontsize = 20)
+plt.xlabel( 'no of orderlines', fontsize = 16)
+plt.ylabel('country', fontsize = 16)
+plt.show()
+
+plt.figure(figsize=(20,10))
+
+sns.countplot(x=sales1['territory'], order=sales1['territory'].value_counts().index)
+plt.title('Number of sale lines for region', fontsize = 20)
+plt.xlabel( 'no of orderlines', fontsize = 16)
+plt.ylabel('Regions', fontsize = 16)
+plt.show()
+
+plt.figure(figsize=(20,10))
+plt.ysticks(np.arrange(0,14000,1000))
+sns.boxplot(x=sales1['dealsize'],y=sales1['sales'])
+plt.title('Sales distribution for deal size', fontsize = 20)
+plt.xlabel( 'Sales', fontsize = 16)
+plt.ylabel('Deal size', fontsize = 16)
+plt.show()
+
+plt.figure(figsize=(20,10))
+
+sns.countplot(x=sales1['dealsize'], order=sales1['dealsize'].value_counts().index)
+plt.title('Number of sale lines for dealsize', fontsize = 20)
+plt.xlabel( 'no of orderlines', fontsize = 16)
+plt.ylabel('Regions', fontsize = 16)
+plt.show()
+
+plt.figure(figsize=(15,12))
+sales1['productline'].value_counts().plot(kind='bar')
+plt.title( 'Product line distribution')
+plt.xlabel('Product Line')
+plt.ylabel('no of orderlines')
+plt.show()
+
+sales['year_month']=sales['year_id'].map(str)+sales1['month_id'].map(str).map(lambda x:x.rjust(2,'0'))
+plt.figure(figsize=(10,6))
+sales.groupby(['year_month'])['customername'].nunique().plot(kind='bar')
+plt.title('monthly active user')
+plt.xlabel('year month')
+plt.ylabel('active user')
+plt.show()
+
+
+df1 = df.groupby('YEAR_ID')['SALES'].sum().reset_index()
+df1.head()
+sns.barplot(data=df1, y='SALES', x='YEAR_ID')
+plt.title('Sales vs Year')
+
+df2 = df.groupby('MONTH_ID')['SALES'].sum().reset_index()
+df2.head()
+sns.barplot(data=df2, y='SALES', x='MONTH_ID')
+plt.title('Sales vs Month')
+
+#Which Country Had More Sales Growth? 
+
+unique_countries = df['COUNTRY'].unique()
+temp=pd.DataFrame()
+# Create subplots for each year
+for i, country in enumerate(unique_countries):
+    country_data = df[df['COUNTRY'] == country]
+    country_data=country_data.groupby('YEAR_ID')['SALES'].sum().reset_index()
+    country_data['COUNTRY'] = country
+    temp = pd.concat([temp,country_data], ignore_index=True)
+temp.head()
+temp = temp[temp['YEAR_ID'] <= 2004]
+temp.head()
+temp['Growth_Rate'] = temp['SALES'].pct_change(periods=1) * 100
+temp.head()
+
+temp = temp[temp['YEAR_ID'] == 2004]
+temp.head()
+plt.figure(figsize=(20,8))
+sns.lineplot(data=temp, x="COUNTRY", y="Growth_Rate")
+plt.title('Growth Rate for every country')
+plt.xticks(rotation=45)
+
+#Which Item Had Sold The Most in 2003? 
+
+df6 = df['PRODUCTLINE'][df['YEAR_ID'] == 2003].value_counts().reset_index()
+df6.head()
+
+sns.barplot(data=df6, y='count', x='PRODUCTLINE')
+plt.title('Which Product Was More Demandable in 2003')
+plt.ylabel('Quantity')
+plt.xlabel('Products')
+plt.xticks(rotation=45, size=10)
+plt.show()
+
+#Who are the top 20% Customer? 
+
+unique_years = df['YEAR_ID'].unique()
+# Create subplots for each year
+for i, year in enumerate(unique_years):
+    year_data = df[df['YEAR_ID'] == year]
+    year_data=year_data.groupby('CUSTOMERNAME')['SALES'].sum().reset_index()
+    year_data['YEAR_ID'] = year
+    plt.figure(figsize=(20,8))
+    plt.title(str(year)+" Revenue by Customer (TOP 10)") # add title 
+    year_data =year_data.sort_values(by = "SALES", ascending=False)
+    year_data=year_data.head(20)
+    a= sns.barplot(x='CUSTOMERNAME',y='SALES',data=year_data,errorbar=None)
+    plt.xticks(rotation = 45)
+    plt.show()
+
+
+
+#https://www.kaggle.com/code/tawhidulislamsazid/exploratory-data-analysis-on-sales-data/notebook
+
+ms=df.groupby(['MONTH_ID','YEAR_ID'])['SALES'].sum().reset_index()
+ms.head()
+ms.plot(kind='bar',x='MONTH_ID',y='SALES',figsize=(12,8))
+plt.title('Year Wise Sale',fontsize=17)
+plt.xlabel('Year',fontsize=15)
+plt.ylabel('Sales',fontsize=15)
+plt.show()
+
+plt.figure(figsize=(10,8))
+plt.title('Monthly Sales Visualization')
+s=sns.lineplot(data=ms,x='MONTH_ID',y='SALES',hue='YEAR_ID',errorbar=('ci',95),palette='dark')
+sns.set_style('whitegrid')
+plt.xlabel('Month')
+plt.ylabel('Sales')
+s.set_xticks([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14])
+plt.show()
+
+ys=df.groupby(['YEAR_ID'])['SALES'].sum().reset_index()
+ys.head()
+
+plt.figure(figsize=(10,8))
+plt.title('Yearly Sale Visualize')
+plt.xlabel('Year')
+plt.ylabel('Sales(in millions)')
+
+p=sns.barplot(data=ys,x='YEAR_ID',y='SALES',hue='YEAR_ID',palette='mako',edgecolor='black',width=0.5)
+sns.set_style('darkgrid')
+
+
+t=['3.51M','4.27M','1.27M']
+p.bar_label(p.containers[0],labels=t,padding=3)
+p.bar_label(p.containers[1],labels=t,padding=3)
+p.bar_label(p.containers[2],labels=t,padding=3)
+
+plt.legend(prop={'size':12})
+plt.show()
